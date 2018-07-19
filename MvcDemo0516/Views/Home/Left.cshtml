@@ -1,0 +1,120 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta charset="utf-8" />
+    <link href="~/Content/sharestyle.css" rel="stylesheet" />
+    <link href="~/Content/main.css" rel="stylesheet" />
+    <script src="~/Scripts/jquery-1.8.3.min.js"></script>
+    <script type="text/javascript">
+        //显示菜单下面的选项
+        function ShowMenuList(id) {
+            var objectobj = document.getElementById(id);
+            var dtObj = document.getElementById("dt_" + id);
+            if (objectobj.style.display == "none") {
+                objectobj.style.display = "";
+                dtObj.setAttribute("class", "head2");
+                //其它菜单折叠
+                $(dtObj).parent().parent().find("dt").not(dtObj).attr("class", "head1"); //折叠
+                $(objectobj).parent().parent().find("ul").not(objectobj).css("display", "none"); //隐藏菜单子项
+            }
+            else {
+                objectobj.style.display = "none";
+                dtObj.setAttribute("class", "head1");
+            }
+        }
+        //控制菜单模块的显示和隐藏
+        function showDivMenu(divId) {
+            $("#" + divId).css("visibility", "visible");
+            $("#" + divId).siblings("div").css("visibility", "hidden");
+        }
+        $(function () {
+            $(".box_n li a").click(function () {
+                $(".box_n li a").removeClass("nav_sub");
+                $(this).addClass("nav_sub");
+            });
+            //显示提单异常数量、显示运单异常数
+            $.ajax({
+                url: "@Url.Action("ExcBillCount", "Reconciliation")",
+                type: "post",
+                dataType: "json",
+                success: function (date) {
+                    if (date.UnusualCount != "" && date.UnusualCount != null) {
+                        $("#billCount").html('('+date.UnusualCount+')');
+                    }
+                    else {
+                        $("#billCount").html("(0)");
+                    }
+                    if (date.OrderCount != "" && date.OrderCount != null) {
+                        $("#orderCount").html('('+date.OrderCount+')');
+                    }
+                    else {
+                        $("#orderCount").html("(0)");
+                    }
+                }
+            });
+        });
+            //点击左侧导航菜单
+            function goNewPage(url, name) {
+                self.parent.frames["mainFrame"].addTab(url, name);
+            }
+           //选中左侧制定的菜单栏
+            function selectMenuItem(name) {
+                $("#" + name).click();
+            }
+    </script>
+</head>
+<body>
+    <div class="leftbar" id="divCustomer">
+        <dl>
+            <dt id="dt_ulCustomer" class="head2" onclick='ShowMenuList("ulCustomer")'>客户管理</dt>
+            <ul class="box_n" id="ulCustomer">
+                <li><a target="mainFrame" id="customerManage" onclick="goNewPage('/Customer/Index','客户信息');">客户信息</a></li>
+            </ul>
+        </dl>
+    </div>
+    <div class="leftbar" id="divSysManage">
+        <dl>
+            <dt id="dt_SysManage" class="head2" onclick='ShowMenuList("SysManage")'>系统管理</dt>
+            <ul class="box_n" id="SysManage">
+                <li><a target="mainFrame" id="Account" onclick="goNewPage('@Url.Action("Index", "Account")','账号管理');">账号管理</a></li>
+            </ul>
+        </dl>
+    </div>
+    <div class="leftbar" id="divIncome">
+        <dl>
+            <dt id="dt_ulFinancial" class="head2" onclick='ShowMenuList("ulFinancial")'>应收管理</dt>
+            <ul class="box_n" id="ulFinancial">
+                <li><a target="mainFrame" id="feeImport" onclick="goNewPage('@Url.Action("FeeImport", "Reconciliation")','费用导入');">其它费用导入</a></li>
+                <li><a target="mainFrame" id="billOfLadingManage" onclick="goNewPage('@Url.Action("Index", "BillOfLadingFee")','提单费用列表');">提单费用列表</a></li>
+@*                 <li><a target="mainFrame" onclick="goNewPage('@Url.Action("TaxSettlement", "Receivable")','税费结算单');">税费结算</a></li>
+                <li><a target="mainFrame" id="IdentityCardCost" onclick="goNewPage('/IdentityCardCost/IdentityCardCost','身份证费用列表');">身份证费用列表</a></li>*@
+    </div>
+    <div class="leftbar" id="divCosts">
+        <dl>
+            <dt id="dt_ulReconcile" class="head2" onclick="ShowMenuList('ulReconcile')">对账管理</dt>
+            <ul class="box_n" id="ulReconcile">
+
+                <li><a target="mainFrame" id="CostUpload" onclick="goNewPage('@Url.Action("CostUpload", "CostUpload")','成本导入');">成本导入</a></li>
+                <li><a target="mainFrame" onclick="goNewPage('@Url.Action("WayBill", "Reconciliation")','运单对账单');">运单对账单</a></li>
+                <li><a target="mainFrame" onclick="goNewPage('@Url.Action("LoadBill", "Reconciliation")','提单对账单');">提单对账单</a></li>
+                @*     <li><a href="#">费用调整</a></li>
+                <li><a href="#">身份证对账单</a></li>*@
+                <li><a target="mainFrame" id="expressExData" onclick="goNewPage('@Url.Action("WayBillException", "Reconciliation")','运单异常数据');">运单异常数据<span id="orderCount"></span></a></li>
+                <li><a target="mainFrame" id="billExData" onclick="goNewPage('@Url.Action("UnusualLoadBill", "Reconciliation")','提单异常数据');">提单异常数据<span  id="billCount"></span></a></li>
+                @*      <li><a href="#">身份证异常数据</a></li>*@
+            </ul>
+        </dl>
+        <dl>
+            <dt id="dt_ulCStatisticalReport" class="head2" onclick="ShowMenuList('ulCStatisticalReport')">统计报表管理</dt>
+            <ul class="box_n" id="ulCStatisticalReport">
+                <li><a target="mainFrame" class="nav_sub" id="MonthPayOff" onclick="goNewPage('@Url.Action("MonthPayOff", "Statistical")','月结表');">月结表</a></li>
+            </ul>
+        </dl>
+    </div>
+</body>
+</html>

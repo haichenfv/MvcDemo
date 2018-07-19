@@ -1,0 +1,88 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{B71F4A5D-246B-41E8-A224-8509E85B5CE2}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Data</RootNamespace>
+    <AssemblyName>Finance.Data</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Iesi.Collections">
+      <HintPath>D:\C# Project\Chapter11\MSD项目完整版\packages\Iesi.Collections.3.2.0.4000\lib\Net35\Iesi.Collections.dll</HintPath>
+    </Reference>
+    <Reference Include="NHibernate">
+      <HintPath>D:\C# Project\Chapter11\MSD项目完整版\packages\NHibernate.3.3.3.4001\lib\Net35\NHibernate.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CostFlow\CostFlowMap.cs" />
+    <Compile Include="CostFlow\WayBillCostRepository.cs" />
+    <Compile Include="Customer\CustomerInfoRepository.cs" />
+    <Compile Include="Customer\CustomerMap.cs" />
+    <Compile Include="Customer\ExpressCurInfoRepository.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Receivable\LoadBillInComeRepository.cs" />
+    <Compile Include="Receivable\MonthPayOffDetailRepository.cs" />
+    <Compile Include="Receivable\MonthPayOffRepository.cs" />
+    <Compile Include="Receivable\ReceivableMap.cs" />
+    <Compile Include="Receivable\WayBillInComeRepository.cs" />
+    <Compile Include="Reconciliation\LoadBillReconciliationRepository.cs" />
+    <Compile Include="Reconciliation\WayBillExceptionRepository.cs" />
+    <Compile Include="Reconciliation\WayBillReconciliationRepository.cs" />
+    <Compile Include="UserModule\UserAccountMap.cs" />
+    <Compile Include="UserModule\UserAccountRepository.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\Finance.Core\Finance.Core.csproj">
+      <Project>{0cb1a6d3-82ee-4c76-b045-f41671e4d339}</Project>
+      <Name>Finance.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ProjectBase.Data\ProjectBase.Data.csproj">
+      <Project>{1b208d7d-af6e-449e-9fcd-1a5e4ea15602}</Project>
+      <Name>ProjectBase.Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ProjectBase.Utils\ProjectBase.Utils.csproj">
+      <Project>{fcefd151-cdda-4b6c-8707-fbc4ba18712e}</Project>
+      <Name>ProjectBase.Utils</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

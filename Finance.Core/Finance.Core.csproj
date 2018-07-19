@@ -1,0 +1,125 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{0CB1A6D3-82EE-4C76-B045-F41671E4D339}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Core</RootNamespace>
+    <AssemblyName>Finance.Core</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="ICSharpCode.SharpZipLib">
+      <HintPath>D:\C# Project\Chapter11\MSD项目完整版\packages\NPOI\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI">
+      <HintPath>D:\C# Project\Chapter11\MSD项目完整版\packages\NPOI\NPOI.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI.OOXML">
+      <HintPath>D:\C# Project\Chapter11\MSD项目完整版\packages\NPOI\NPOI.OOXML.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI.OpenXml4Net">
+      <HintPath>D:\C# Project\Chapter11\MSD项目完整版\packages\NPOI\NPOI.OpenXml4Net.dll</HintPath>
+    </Reference>
+    <Reference Include="NPOI.OpenXmlFormats">
+      <HintPath>D:\C# Project\Chapter11\MSD项目完整版\packages\NPOI\NPOI.OpenXmlFormats.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CommonEnum.cs" />
+    <Compile Include="CostFlow\Repositories\IWayBillCostRepository.cs" />
+    <Compile Include="CostFlow\WayBillCost.cs" />
+    <Compile Include="Customer\CustomerInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Customer\ExpressCurInfo.cs" />
+    <Compile Include="Customer\Repositories\ICustomerInfoRepository.cs" />
+    <Compile Include="Customer\Repositories\IExpressCurInfoRepository.cs" />
+    <Compile Include="Excel\Base\BaseGenerateSheet.cs" />
+    <Compile Include="Excel\Base\ColumnsMapping.cs" />
+    <Compile Include="Excel\Base\GenerateExcel.cs" />
+    <Compile Include="Excel\Base\GenerateSheet.cs" />
+    <Compile Include="Excel\MonthPayOff\LoadBillSheet.cs" />
+    <Compile Include="Excel\MonthPayOff\MonthPayOffSheet.cs" />
+    <Compile Include="Excel\MonthPayOff\WayBillSummarySheet.cs" />
+    <Compile Include="Filters\BillOfLadingFeeFilter.cs" />
+    <Compile Include="Filters\CustomerFilter.cs" />
+    <Compile Include="Filters\ExpressCurInfoFilter.cs" />
+    <Compile Include="Filters\LoadBillReconciliationFilter.cs" />
+    <Compile Include="Filters\MonthPayOffExportFilter.cs" />
+    <Compile Include="Filters\MonthPayOffFilter.cs" />
+    <Compile Include="Filters\WayBillCostFilter.cs" />
+    <Compile Include="Filters\UserAccountFilter.cs" />
+    <Compile Include="Filters\WayBillExceptionFilter.cs" />
+    <Compile Include="Filters\WayBillReconciliationFilter.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Receivable\LoadBillInCome.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Receivable\MonthPayOff.cs" />
+    <Compile Include="Receivable\MonthPayOffDetail.cs" />
+    <Compile Include="Receivable\Repositories\ILoadBillInComeRepository.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Receivable\Repositories\IMonthPayOffDetailRepository.cs" />
+    <Compile Include="Receivable\Repositories\IMonthPayOffRepository.cs" />
+    <Compile Include="Receivable\Repositories\IWayBillInComeRepository.cs" />
+    <Compile Include="Receivable\WayBillInCome.cs" />
+    <Compile Include="Reconciliation\LoadBillReconciliation.cs" />
+    <Compile Include="Reconciliation\Repositories\ILoadBillReconciliationRepository.cs" />
+    <Compile Include="Reconciliation\Repositories\IWayBillExceptionRepository.cs" />
+    <Compile Include="Reconciliation\Repositories\IWayBillReconciliationRepository.cs" />
+    <Compile Include="Reconciliation\WayBillException.cs" />
+    <Compile Include="Reconciliation\WayBillReconciliation.cs" />
+    <Compile Include="UserModule\Repositories\IUserAccountRepository.cs" />
+    <Compile Include="UserModule\UserAccount.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ProjectBase.Data\ProjectBase.Data.csproj">
+      <Project>{1b208d7d-af6e-449e-9fcd-1a5e4ea15602}</Project>
+      <Name>ProjectBase.Data</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ProjectBase.Utils\ProjectBase.Utils.csproj">
+      <Project>{fcefd151-cdda-4b6c-8707-fbc4ba18712e}</Project>
+      <Name>ProjectBase.Utils</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

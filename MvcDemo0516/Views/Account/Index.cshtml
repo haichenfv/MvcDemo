@@ -1,0 +1,176 @@
+﻿@using ProjectBase.Utils
+@{
+    ViewBag.Title = "账号管理";
+}
+<link href="~/libs/DataTables-1.10.6/media/css/jquery.dataTablesNew.css" rel="stylesheet" />
+<script src="~/libs/lhgdialog/lhgdialog.min.js?self=true"></script>
+<script src="~/libs/DataTables-1.10.6/media/js/jquery.dataTables.min.js"></script>
+<script src="~/Scripts/DataTablesExt.js"></script>
+
+<script type="text/javascript">
+    //弹出框  
+    var addDG, updateDG, matchDG;
+    var w = 370, h = 220; //宽，高
+    //添加记录
+    function showPublishWin() {
+        addDG = new $.dialog({
+            id: "AddAccount",
+            title: "添加账号",
+            content: "url:@Url.Action("AddAccount", "Account")",
+            width: w,
+            height: h + 20,
+            max: false,
+            min: false,
+            lock: true,
+            close: true,
+            btnBar: false
+        });
+        addDG.show();
+    }
+    //修改记录
+    function modifyRecord(id) {
+        updateDG = new $.dialog({
+            id: "EditAccount",
+            title: "修改账号",
+            content: "url:@Url.Action("EditAccount", "Account")/" + id,
+            width: w,
+            height: h,
+            max: false,
+            min: false,
+            lock: true,
+            close: true,
+            btnBar: false
+        });
+        updateDG.show();
+    }
+    //隐藏弹出框
+    function hidePublishWin(msg, result, isStay) {
+        var icon = "success.gif";
+        if (result == "False") {
+            icon = "error.gif";
+        }
+        $.dialog({
+            title: "提示",
+            icon: icon,
+            titleIcon: 'lhgcore.gif',
+            content: msg,
+            lock: true,
+            ok: function () {
+                if (result != "False") {
+                    if (addDG) {
+                        addDG.close();
+                        addDG = null;
+                    }
+                    if (updateDG) {
+                        updateDG.close();
+                        updateDG = null;
+                    }
+                    if (matchDG) {
+                        matchDG.close();
+                        matchDG = null;
+                    }
+                    if (isStay == 0) {
+                        reloadList();
+                    }
+                    else {
+                        reloadListNew();
+                    }
+                }
+            }
+        });
+    }
+    //刷新
+    function reloadList() {
+        var tables = $('#table_local').dataTable().api();//获取DataTables的Api，详见 http://www.datatables.net/reference/api/
+        tables.ajax.reload();
+    }
+    //刷新，但是停留在当前分页
+    function reloadListNew() {
+        var tables = $('#table_local').dataTable().api();//获取DataTables的Api，详见 http://www.datatables.net/reference/api/
+        tables.ajax.reload(null, false);
+    }
+</script>
+<script type="text/javascript">
+    $(function () {
+        var table = $("#table_local").dataTable({
+            bProcessing: true,
+            "scrollY": table_h1,
+            "scrollCollapse": "true",
+            "dom": 'ftr<"bottom"lip><"clear">',
+            "bServerSide": false,                    //指定从服务器端获取数据
+            sServerMethod: "POST",
+            sAjaxSource: "@Url.Action("AccountList", "Account")",
+            "fnServerParams": function (aoData) {  //查询条件
+                aoData.push(
+                    { "name": "Account", "value": $("#txtAccount").val() },
+                    { "name": "IsAvailable", "value": $("#IsAvailable").val() }
+                    );
+            },
+            columns: [{ title: "1", "visible": false, "data": "ID" },
+               { "data": "Account", title: "账号" },
+               { "data": "RealName", title: "真实姓名" },
+               { "data": "CreateTime", title: "创建时间" },
+               { "data": "IsAvailable", title: "状态" },
+               {
+                   "data": "ID", orderable: false, title: "操作", width: "140", "render": function (data, type, row, meta) { //自定义列
+                       var re = "<div style='text-align:center'><a style='visibility:visible' onclick='modifyRecord(" + data + ")'>修改</a></div>";
+                       return re;
+                   }
+               }
+            ],
+            paging: true,//分页
+            ordering: true,//是否启用排序
+            searching: true,//搜索
+            language: {
+                "sProcessing": "处理中...",
+                lengthMenu: lengthMenuStr,//左上角的分页大小显示。
+                search: '<span class="label label-success">搜索：</span>',//右上角的搜索文本，可以写html标签
+                paginate: {//分页的样式内容。
+                    previous: "上一页",
+                    next: "下一页",
+                    first: "",
+                    last: ""
+                },
+                zeroRecords: "暂无记录",//table tbody内容为空时，tbody的内容。
+                //下面三者构成了总体的左下角的内容。
+                info: infoStr,//左下角的信息显示，大写的词为关键字。初始_MAX_ 条 
+                infoEmpty: "0条记录",//筛选为空时左下角的显示。
+                infoFiltered: ""//筛选之后的左下角筛选提示，
+            },
+            pagingType: "full_numbers"//分页样式的类型
+        });
+        //设置选中行样式
+        $('#table_local tbody').on('click', 'tr', function () {
+            if ($(this).hasClass('selected')) {
+                $(this).removeClass('selected');
+            }
+            else {
+                table.$('tr.selected').removeClass('selected');
+                $(this).addClass('selected');
+            }
+        });
+    });
+    //查询 刷新
+    function reloadList() {
+        var tables = $('#table_local').dataTable().api();//获取DataTables的Api，详见 http://www.datatables.net/reference/api/
+        tables.ajax.reload();
+    }
+</script>
+<div class="areabx clear">
+    <div id="divSearch">
+        <ul class="formod">
+            <li><span>账号名：</span>@Html.TextBox("Account", null, new { @class = "trade-time wid153", @id = "txtAccount" })</li>
+            <li><span>状态：</span>@Html.DropDownList("IsAvailable", new SelectListItem[] { new SelectListItem() { Text = "所有" }, new SelectListItem() { Text = "启用", Value = "true" }, new SelectListItem() { Text = "禁用", Value = "false" } }, new { @class = "trade-time wid153" })</li>
+        </ul>
+        <div class="botbtbx pdb0" style="margin-bottom: -30px;">
+            <input type="button" value="查询" onclick="reloadList();" class="btn btn-primary">
+            <input type="button" value="添加账号" class="btn btn-primary" onclick="showPublishWin()" />
+        </div>
+    </div>
+    &nbsp;
+    <div class="tob_box mgt15">
+        <table id="table_local" class="display" cellspacing="0" cellpadding="0" border="0" style="width: 100%">
+        </table>
+    </div>
+</div>
+

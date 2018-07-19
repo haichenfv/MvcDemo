@@ -1,0 +1,26 @@
+﻿@model List<ProjectBase.Utils.Entitles.LinkEntity>
+@{
+    ViewBag.Title = "LoadExcelList";
+}
+<style type="text/css">
+    html, body {
+        overflow-x:hidden;
+    }
+    div {
+        margin:4px;
+    }
+    .mg6 {
+    display: inline-block;
+    margin: 10px 0 10px 82px !important;
+    }
+</style>
+<div style="margin-top:10px;height:240px;">
+  @if (Model==null ||Model.Count == 0)
+  {
+      <div style="color:red;">暂无可下载的对账单</div>
+  }
+@foreach (var item in Model) {
+  <div><a href="@item.LinkUrl">@item.LinkText</a></div>
+}
+    </div>
+<input type="submit" value="确定" class="popbtn1 mg6" onclick="frameElement.api.opener.loadDG.close();">

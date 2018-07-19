@@ -1,0 +1,61 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width,initial-scale=1.0">
+	<title>欢迎登录</title>	
+    <link href="~/Content/main.css" rel="stylesheet" />
+    <link href="~/Content/sharestyle.css" rel="stylesheet" />
+    <script src="~/Scripts/jquery-1.7.1.min.js"></script>
+    <style type="text/css">
+        .login-ipt {
+            margin-left:40px;
+        }
+    </style>
+    <script type="text/javascript">
+        $(function () {
+            if (top.location.href != window.location.href) {
+                top.location.href = window.location.href;
+            }
+        });
+    </script>
+</head>
+<body>
+    @using (Html.BeginForm("Login", "User", FormMethod.Post, new { @id = "LoginForm" }))
+    {
+    <div class="login-page">
+    	<div class="login-form">
+    	    <div class="formheader">欢迎登录</div>
+    	    <div class="formbox">
+                <input type="text" name="userName" class="login-ipt" placeholder="用户名"><i class="i1"></i>
+    	    </div>
+    	    <div class="formbox">
+                <input type="password" name="passWord" class="login-ipt" placeholder="密码"><i class="i2"></i>
+    	    </div>
+            <div class="formbox">
+                <span class="warntpscont mgb5">@ViewBag.Message</span>
+            </div>
+    	    <div class="formbox">
+                <span><input type="checkbox" name="isRemember" value="True">&nbsp;&nbsp;记住密码</span>
+            @*    <a href="">忘记密码？</a>*@
+    	    </div>
+    	    <div class="clear"></div>
+    	    <input type="submit" class="btsty1" value="登录">
+    	    <div class="formbox">
+ @*               <a href="" class="imr">立即注册</a>*@
+    	    </div>
+    	    <div class="clear"></div>
+    	    <div class="formbox">
+    	    	<div class="bottxt">©2018版权归xx所有</div>
+    	    </div>
+    	</div>
+    </div>               
+    }
+</body>
+</html>
+

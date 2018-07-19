@@ -1,0 +1,340 @@
+﻿@{
+    ViewBag.Title = "运费对账";
+}
+<link href="~/libs/DataTables-1.10.6/media/css/jquery.dataTablesNew.css" rel="stylesheet" />
+<script src="~/libs/DataTables-1.10.6/media/js/jquery.dataTables.min.js"></script>
+<script src="~/Scripts/DataTablesExt.js"></script>
+<script src="~/libs/My97DatePicker/WdatePicker.js"></script>
+<script type="text/javascript">
+    $(function () {
+        var table = $("#table_local").dataTable({
+            bProcessing: true,
+            //"deferRender": true,//当处理大数据时，延迟渲染数据，有效提高Datatables处理能力
+            "scrollY": table_h,
+            "scrollX": $(document).width(),
+            "scrollCollapse": "true",
+            "dom": 'tr<"bottom"lip><"clear">',
+            "bServerSide": true,                    //指定从服务器端获取数据  
+            sServerMethod: "POST",
+            showRowNumber: true,
+            sAjaxSource: "@Url.Action("WayBillList", "Reconciliation")",
+            "initComplete": function (data, args) {
+                getTotal(args);
+                //var arr = new Array(7,8,9,10,11,14,15,16,17,18); //页面一加载隐藏的列
+                //controlColumnShow(table, arr,false);
+            },
+            "fnServerParams": function (aoData) {  //查询条件
+                aoData.push(
+                    { "name": "CusShortName", "value": $("#CusShortName").val() },
+                    { "name": "LoadBillNum", "value": $("#LoadBillNum").val() },
+                    { "name": "ExpressNo", "value": $("#ExpressNo").val() },
+                    { "name": "PostingTime", "value": $("#PostingTime").val() },
+                    { "name": "PostingTimeTo", "value": $("#PostingTimeTo").val() },
+                    { "name": "Margin", "value": $("#sltMargin").val() }
+                     );
+            },
+            //跟数组下标一样，第一列从0开始，这里表格初始化时，第四列默认降序
+            "order": [[2, "asc"]],
+            columns: [
+               {
+                   "data": "IsInputCost", orderable: false, width: "60",
+                   "render": function (data, type, row, meta) {
+                       return " <input id='cbx" + data + "' type='checkbox' onclick='controlSelectAll(" + data + ")' class='cbx' value='" + data + "'/>  " + row.Index;
+                   }
+               },
+                //{ "data": "ReconcileDate",visible:false},//对账日期
+                { "data": "CusName" }, //客户名称
+                { "data": "PostingTime"},//收寄日期
+                { "data": "ReconcileDate" },//对账日期
+                { "data": "ExpressNo", orderable: false }, //运单号
+                { "data": "BatchNO" },//提单号
+                { "data": "Weight" },//重量
+                  {
+                      "data": "WayBillFee", visible: false, orderable: false, width: "80", "render": function (data, type, row, meta) { ///邮政邮资
+                          var re = "";
+                          (row.IsInputCost > 0) ? re = "<span>" : re = "<span class='preColor'>"
+                          re += +data + "</span>";
+                          return re;
+                      }
+                  },
+                  {
+                      "data": "ProcessingFee", visible: false, orderable: false, "render": function (data, type, row, meta) { //邮政邮件处理费
+                          var re = "";
+                          (row.IsInputCost > 0) ? re = "<span>" : re = "<span class='preColor'>"
+                          re += +data + "</span>";
+                          return re;
+                      }
+                  },
+                 {
+                     "data": "CostOtherFee", visible: false, orderable: false, "render": function (data, type, row, meta) { //其它费用
+                         var re = "";
+                         (row.IsInputCost > 0) ? re = "<span>" : re = "<span class='preColor'>"
+                         re += +data + "</span>";
+                         return re;
+                     }
+                 },
+                 {
+                     "data": "CostTotalFee", orderable: false, "render": function (data, type, row, meta) { //总成本
+                         var re = "";
+                         (row.IsInputCost > 0) ? re = "<span>" : re = "<span class='preColor'>"
+                         re += +data + "</span>";
+                         return re;
+                     }
+                 },
+                { "data": "CostStatus", orderable: false, width: "80" },//状态
+                { "data": "InComeWayBillFee", visible: false },//客户运费
+                { "data": "InComeOprateFee", visible: false },//客户操作费
+                { "data": "InComeOtherFee", visible: false },//其它费用
+                { "data": "InComeTotalFee" },//总收入
+                { "data": "InComeStatus", orderable: false, width: "80" },//状态
+                 {
+                     "data": "WayBillMargins", orderable: false, "render": function (data, type, row, meta) { //运费毛利
+                         var css = "";
+                         if (data < 0) {
+                             css = " class='numberColor'";
+                         }
+                         var re = "<div" + css + ">" + data + "</div>";
+                         return re;
+                     }
+                 },
+                  {
+                      "data": "TotalMargins", orderable: false, "render": function (data, type, row, meta) { //总毛利
+                          var css = "";
+                          if (data < 0) {
+                              css = " class='numberColor'";
+                          }
+                          var re = "<div" + css + ">" + data + "</div>";
+                          return re;
+                      }
+                  },
+                   {
+                       "data": "Margin", orderable: false, "render": function (data, type, row, meta) { //毛利率
+                           var css = "";
+                           if (data < 0) {
+                               css = " class='numberColor'";
+                           }
+                           var re = "<div" + css + ">" + data + "%</div>";
+                           return re;
+                       }
+                   },
+                { "data": "Statement", orderable: false, width: "130" },
+                {
+                    "data": "ExpressNo", orderable: false, width: "100", "render": function (data, type, row, meta) { //操作                  
+                        var re = "<div style='text-align:center'><a style='visibility:visible' onclick='openDetail(\"" + row.ExpressNo + "\")'>详 情</a>&nbsp;&nbsp;";
+                        return re;
+                    }
+                }
+            ],
+            paging: true,//分页
+            ordering: true,//是否启用排序
+            searching: true,//搜索
+            language: {
+                "sProcessing": "处理中...",
+                lengthMenu: lengthMenuStr,//左上角的分页大小显示。
+                search: '<span class="label label-success">搜索：</span>',//右上角的搜索文本，可以写html标签
+
+                paginate: {//分页的样式内容。
+                    previous: "上一页",
+                    next: "下一页",
+                    first: "",
+                    last: ""
+                },
+
+                zeroRecords: "暂无记录",//table tbody内容为空时，tbody的内容。
+                //下面三者构成了总体的左下角的内容。
+                info: infoStr,//左下角的信息显示，大写的词为关键字。初始_MAX_ 条 
+                infoEmpty: "0条记录",//筛选为空时左下角的显示。
+                infoFiltered: ""//筛选之后的左下角筛选提示，
+            },
+            pagingType: "full_numbers"//分页样式的类型
+        });
+        //设置选中行样式
+        $('#table_local tbody').on('click', 'tr', function () {
+            if ($(this).hasClass('selected')) {
+                $(this).removeClass('selected');
+            }
+            else {
+                table.$('tr.selected').removeClass('selected');
+                $(this).addClass('selected');
+            }
+        });
+        //展开折叠列
+        $("#imgIncome").click(function () {
+            var url = $("#imgIncome").attr("src");
+            var arr = new Array(7, 8, 9);
+            if (url == "/images/icon_9.png") {
+                controlColumnShow(table, arr, true);
+                $("#imgIncome").attr("src", "/images/icon_10.png");
+            }
+            else {
+                controlColumnShow(table, arr, false);
+                $("#imgIncome").attr("src", "/images/icon_9.png");
+            }
+
+        });
+        //收入展开折叠
+        $("#imgCost").click(function () {
+            var url = $("#imgCost").attr("src");
+            var arr = new Array(12, 13, 14);
+            if (url == "/images/icon_9.png") {
+                controlColumnShow(table, arr, true);
+                $("#imgCost").attr("src", "/images/icon_10.png");
+            }
+            else {
+                controlColumnShow(table, arr, false);
+                $("#imgCost").attr("src", "/images/icon_9.png");
+            }
+        });
+    });
+    function reloadList() {
+        var tables = $('#table_local').dataTable().api();//获取DataTables的Api，详见 http://www.datatables.net/reference/api/
+        tables.ajax.reload(function () {
+            var json = tables.context[0].json;
+            getTotal(json);
+        });
+    }
+    //统计
+    function getTotal(json) {
+        if (json) {
+            //if (json.TotalWeight) {
+                $("#spnTotalWeight").html(json.TotalWeight);
+                $("#spnTotalWayBillFee").html(json.TotalWayBillFee);
+                $("#spnTotalProcessingFee").html(json.TotalProcessingFee);
+                $("#spnTotalExpressFee").html(json.TotalExpressFee);
+                $("#spnTotalOperateFee").html(json.TotalOperateFee);
+                $("#spnSumWayBillProfit").html(json.SumWayBillProfit);
+                //$("#spnSumTotalProfit").html(json.SumTotalProfit);
+            //}
+        }
+        if (json) {
+            $("#UnusualCount").html("异常数据&nbsp;&nbsp;<b style='color: red;'>" + json.ExceptionCount + "</b>&nbsp;&nbsp;条");
+        }
+    }
+
+    //打开异常界面
+    function openUnusual() {
+        //选中左侧菜单栏
+        self.parent.parent.leftFrame.selectMenuItem("expressExData");
+        var filter = '';
+        if ($("#CusShortName").val().length > 0) {
+            filter += filter.length > 0 ? "&CusShortName=" + $("#CusShortName").val() : "CusShortName=" + $("#CusShortName").val();
+        }
+        if ($("#LoadBillNum").val().length > 0) {
+            filter += filter.length > 0 ? "&LoadBillNum=" + $("#LoadBillNum").val() : "LoadBillNum=" + $("#LoadBillNum").val();
+        }
+        if ($("#ExpressNo").val().length > 0) {
+            filter += filter.length > 0 ? "&ExpressNo=" + $("#ExpressNo").val() : "ExpressNo=" + $("#ExpressNo").val();
+        }
+        if ($("#PostingTime").val().length > 0) {
+            filter += filter.length > 0 ? "&PostingTime=" + $("#PostingTime").val() : "PostingTime=" + $("#PostingTime").val();
+        }
+        if ($("#PostingTimeTo").val().length > 0) {
+            filter += filter.length > 0 ? "&PostingTimeTo=" + $("#PostingTimeTo").val() : "PostingTimeTo=" + $("#PostingTimeTo").val();
+        }
+        self.parent.addTab('@Url.Action("WayBillException", "Reconciliation")'.concat(filter.length > 0 ? '/?'.concat(filter) : ''), '运单异常数据');
+    }
+    //控制指定定列的隐藏和显示（table，列索引数组，隐藏or显示:true,false)
+    function controlColumnShow(table, arr, tag) {
+        for (var i = 0; i < arr.length; i++) {
+            table.fnSetColumnVis(arr[i], tag,false);
+        }
+    }
+    //查看详情
+    function openDetail(ExpressNo) {
+        var url = "/Reconciliation/WayBillDetailed?ExpressNo=" + ExpressNo;
+        goNewPage(url, "运单对账详情-" + ExpressNo);
+    }
+
+    //点击打开新页面
+    function goNewPage(url, name) {
+        self.parent.addTab(url, name);
+    }
+</script>
+<div class="areabx clear">
+    @using (Html.BeginForm("List", null, FormMethod.Get, new { @clase = "form-inline", @role = "form" }))
+    {    <div id="divSearch">
+        @*<div class="areabx_header">@ViewBag.Title</div>*@
+        <ul class="formod">
+            <li><span>客户简称：</span>@Html.TextBox("CusShortName", "", new { @class = "trade-time wid153" })</li>
+            <li><span>提单号：</span>@Html.TextBox("LoadBillNum", "", new { @class = "trade-time" })</li>
+        </ul>
+        <ul class="formod">
+            <li><span>运单号：</span>@Html.TextBox("ExpressNo", "", new { @class = "trade-time wid153" })</li>
+            <li><span>收寄日期：</span>@Html.TextBox("PostingTime", "", new { @class = "trade-time wid153", @onClick = "WdatePicker({maxDate:'#F{$dp.$D(\\'PostingTimeTo\\')}'})" })</li>
+            <li><span class="css_Span">—</span>  @Html.TextBox("PostingTimeTo", "", new { @class = "trade-time wid153", @onClick = "WdatePicker({minDate:'#F{$dp.$D(\\'PostingTime\\')}'})" })</li>
+            <li><span>毛利：</span><select class="trade-time" id="sltMargin"><option value="" selected="selected">全部</option>
+                <option value="+">+</option>
+                <option value="-">-</option>
+            </select></li>
+        </ul>
+        <div class="botbtbx pdb0">
+            <input type="button" value="查询" id="btnSearch" onclick="reloadList();" class="btn btn-primary" />
+            <span class="spanMsg">提示：
+                @*<a target="mainFrame"  id="UnusualCount" onclick="goNewPage('@Url.Action("WayBillException", "Reconciliation")','运单异常数据')"></a>*@
+                <a target="mainFrame" id="UnusualCount" onclick="openUnusual()"></a>
+            </span>
+        </div>
+    </div>
+    }
+    <div class="tob_box mgt15">
+        <table id="table_local" class="display" cellspacing="0" cellpadding="0" border="0" style="width: 100%">
+            <thead>
+                <tr>
+                    <th rowspan="2"><input type='checkbox' id='chkAllColl' onclick='selectAll()' />序号</th>
+                    <th rowspan="2">客户简称</th>
+                    <th rowspan="2">收寄日期</th>
+                    <th rowspan="2">对账日期</th>
+                    <th rowspan="2">运单号</th>
+                    <th rowspan="2">提单号</th>
+                    <th rowspan="2">重量(kg)</th>
+                    <th colspan="5"><span>成本</span><span class="divIncome1"><img id="imgIncome" src="/images/icon_9.png" alt="收起/展开" title="收起/展开" /></span></th>
+                    <th colspan="5"><span>收入</span><span class="divIncome1"><img id="imgCost" src="/images/icon_9.png" alt="收起/展开" title="收起/展开" /></span></th>
+                    <th colspan="3">毛利</th>
+                    <th rowspan="2">对账单状态</th>
+                    <th rowspan="2">操作</th>
+                </tr>
+                <tr>
+                    <th>邮政邮资</th>
+                    <th>邮政邮件处理费</th>
+                    <th>其它费用</th>
+                    <th>总成本</th>
+                    <th>状态</th>
+                    <th>客户运费</th>
+                    <th>客户操作费</th>
+                    <th>其它费用</th>
+                    <th>总收入</th>
+                    <th>状态</th>
+                    <th>运费毛利</th>
+                    <th>总毛利</th>
+                    <th>毛利率</th>
+                </tr>
+            </thead>
+               <tfoot>
+                <tr>
+                    <td>总计</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td><span id="spnTotalWeight"></span></td>
+                    <td><span id="spnTotalWayBillFee"></span></td>
+                    <td><span id="spnTotalProcessingFee"></span></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td><span id="spnTotalExpressFee"></span></td>
+                    <td><span id="spnTotalOperateFee"></span></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td><span id="spnSumWayBillProfit"></span></td>
+                    <td><span id="spnSumTotalProfit"></span></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>

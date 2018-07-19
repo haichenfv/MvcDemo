@@ -1,0 +1,10 @@
+c:\users\lenovo\documents\visual studio 2012\Projects\MvcDemo0516\ProjectBase.Utils\bin\Debug\ProjectBase.Utils.dll
+c:\users\lenovo\documents\visual studio 2012\Projects\MvcDemo0516\ProjectBase.Utils\bin\Debug\ProjectBase.Utils.pdb
+c:\users\lenovo\documents\visual studio 2012\Projects\MvcDemo0516\ProjectBase.Utils\obj\Debug\ProjectBase.Utils.csprojResolveAssemblyReference.cache
+c:\users\lenovo\documents\visual studio 2012\Projects\MvcDemo0516\ProjectBase.Utils\obj\Debug\ProjectBase.Utils.dll
+c:\users\lenovo\documents\visual studio 2012\Projects\MvcDemo0516\ProjectBase.Utils\obj\Debug\ProjectBase.Utils.pdb
+C:\Users\lenovo\Documents\Visual Studio 2012\Projects\MvcDemo0516\ProjectBase.Utils\bin\Debug\ICSharpCode.SharpZipLib.dll
+C:\Users\lenovo\Documents\Visual Studio 2012\Projects\MvcDemo0516\ProjectBase.Utils\bin\Debug\NPOI.dll
+C:\Users\lenovo\Documents\Visual Studio 2012\Projects\MvcDemo0516\ProjectBase.Utils\bin\Debug\NPOI.OOXML.dll
+C:\Users\lenovo\Documents\Visual Studio 2012\Projects\MvcDemo0516\ProjectBase.Utils\bin\Debug\NPOI.OpenXml4Net.dll
+C:\Users\lenovo\Documents\Visual Studio 2012\Projects\MvcDemo0516\ProjectBase.Utils\bin\Debug\NPOI.OpenXmlFormats.dll

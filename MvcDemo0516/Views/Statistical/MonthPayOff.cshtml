@@ -1,0 +1,228 @@
+﻿@{
+    ViewBag.Title = "月结表";
+}
+
+<link href="~/libs/DataTables-1.10.6/media/css/jquery.dataTablesNew.css" rel="stylesheet" />
+<script src="~/libs/lhgdialog/lhgdialog.min.js?self=true"></script>
+<script src="~/libs/DataTables-1.10.6/media/js/jquery.dataTables.min.js"></script>
+<script src="~/Scripts/DataTablesExt.js"></script>
+<script src="~/libs/My97DatePicker/WdatePicker.js"></script>
+<script type="text/javascript">
+    var table;
+
+    function getMonthStr(date) {
+        var m = date.getMonth() + 1;
+        if (m < 10) {
+            m = '0' + m;
+        }
+        return m;
+    }
+    $(function () {
+        table = $("#table_local").dataTable({
+            bProcessing: true,
+            scrollY: table_h,
+            scrollCollapse: "true",
+            dom: 'tr<"bottom"lip><"clear">',
+            bServerSide: false,                    //指定从服务器端获取数据  
+            sServerMethod: "POST",
+            showRowNumber: true,
+            sAjaxSource: "@Url.Action("MonthPayOffList", "Statistical")",
+            //initComplete: function (data, args) {
+            //    //getTotal(args);
+            //    var arr = new Array(7, 8, 6, 12, 13, 11);
+            //    controlColumnShow(table, arr, false);
+            //},
+            fnServerParams: function (aoData) {  //查询条件
+                aoData.push(
+                    { name: "PayOffMonth", value: $("#PayOffMonth").val().length>0?$("#PayOffMonth").val() + "-01":""}
+                     );
+            },
+            //跟数组下标一样，第一列从0开始，这里表格初始化时，第四列默认降序
+            order: [[2, "asc"]],
+            columns: [
+                {
+                    data: "ID", orderable: false, width: 100,
+                    render: function (data, type, row, meta) {
+                        return " <input id='cbx" + data + "' type='checkbox' onclick='controlSelectAll(" + data + ")' class='cbx' value='" + data + "'/>&nbsp&nbsp&nbsp" + row.Index;
+                    }
+                },
+                { data: "PayOffMonth", width: 110 }, //结算月份
+                { data: "LoadBillCounts", width: 110 },//提单总数
+                { data: "OrderCounts", width: 110 }, //包裹总数
+                { data: "PreTotalCostFee", width: 110 },//预计总成本
+                { data: "TotalCostFee", width: 110 },//真实总成本
+                { data: "PreInComeFee", width: 110 },//预计总收入
+                { data: "InComeFee", width: 110 },//真实总收入
+                { data: "TotalMargin", width: 110 },//总毛利
+                {
+                    "data": "MarginRate", width: 110, orderable: false, "render": function (data, type, row, meta) {
+                        var css = "";
+                        if (data < 0) {
+                            css = " class='numberColor'";
+                        }
+                        var re = "<div" + css + ">" + data + "%</div>";
+                        return re;
+                    }
+                },//毛利率
+                { data: "Remark" },//备注
+                { data: "Status", width: 110 },//状态
+                {
+                    data: "ID", orderable: false, width: "110", render: function (data, type, row, meta) { //操作                    
+                        if (row.Status == "已锁定") {
+                            var re = "<div style='text-align:center'><a style='visibility:visible' onclick='openDetail(" + row.ID + ")'>明 细</a></div>";
+                        }
+                        else {
+                            var re = "<div style='text-align:center'><a style='visibility:visible' onclick='openDetail(" + row.ID + ")'>明细</a>&nbsp&nbsp&nbsp<a href = '#' style='visibility:visible' onclick='LockStatus(" + data + ")'> 锁 定 </a> </div>";
+                        }
+                        return re;
+                    }
+                }
+            ],
+            paging: true,//分页
+            ordering: false,//是否启用排序
+            searching: true,//搜索
+            language: {
+                sProcessing: "处理中...",
+                lengthMenu: lengthMenuStr,//左上角的分页大小显示。
+                search: '<span class="label label-success">搜索：</span>',//右上角的搜索文本，可以写html标签
+
+                paginate: {//分页的样式内容。
+                    previous: "上一页",
+                    next: "下一页",
+                    first: "",
+                    last: ""
+                },
+
+                zeroRecords: "暂无记录",//table tbody内容为空时，tbody的内容。
+                //下面三者构成了总体的左下角的内容。
+                info: infoStr,//左下角的信息显示，大写的词为关键字。初始_MAX_ 条 
+                infoEmpty: "0条记录",//筛选为空时左下角的显示。
+                infoFiltered: ""//筛选之后的左下角筛选提示，
+            },
+            pagingType: "full_numbers"//分页样式的类型
+        });
+        var d = new Date();
+        var strD = d.getFullYear() + "-" + getMonthStr(d);
+        $("#PayOffMonth").val(strD);
+    });
+    function reloadList() {
+        var tables = $('#table_local').dataTable().api();//获取DataTables的Api，详见 http://www.datatables.net/reference/api/
+        tables.ajax.reload();
+    }
+
+    //锁定状态
+    function LockStatus(id) {
+        $.dialog.confirm("确定锁定该月解表", function () {
+            $.ajax({
+                type: "post",
+                url: "/Statistical/MonthPayOffLockStatus/" + id,
+                success: function (data) {
+                    $.dialog.alert(data);
+                    reloadList();
+                }
+            });
+        }, null)
+    }
+
+    //查看详情
+    function openDetail(id) {
+        self.parent.addTab('@Url.Action("MonthPayOffDetail", "Statistical")/' + id, '月结算明细');
+    }
+
+
+    //导出Excel
+    function exportExcel() {
+        var payOffMonth = $("#PayOffMonth").val();
+        var nTrs = table.fnGetNodes();//fnGetNodes获取表格所有行，nTrs[i]表示第i行tr对象
+        var row;
+        var strdid = '';
+        var selectCounts = 0;
+        for (var i = 0; i < nTrs.length; i++) {
+            if ($(nTrs[i])[0].cells[0].children[0].checked) {
+                row = table.fnGetData(nTrs[i]);//fnGetData获取一行的数据        
+                selectCounts++;
+                strdid += "" + row.ID + ",";
+            }
+        }
+        strdid = strdid.substring(0, strdid.length - 1);
+        if (selectCounts < 1) {
+            $.dialog.alert("请先选择数据行！");
+            return false;
+        }
+        $.ajax({
+            type: 'POST',
+            url: '@Url.Action("ExportExcel", "Statistical")',
+            data: [{ name: "PayOffMonth", value: payOffMonth }, { name: "ListID", value: strdid }],
+            dataType: 'json',
+            success: function (data) {
+                if (data.IsSuccess) {
+                    $.dialog.alert('导出Excel文件成功!1小时后可以下载！');
+                }
+                else {
+                    $.dialog.alert('导出Excel文件失败!');
+                }
+            }
+        });
+    }
+    var loadDG;
+    //下载已生成的月结表
+    function showLoadWin() {
+        loadDG = new $.dialog({
+            title: "已生成的月结表",
+            content: "url:/Statistical/LoadExcelList",
+            width: 225,
+            height: 300,
+            max: false,
+            min: false,
+            lock: true,
+            close: true,
+            btnBar: false
+        });
+        loadDG.show();
+    }
+</script>
+<div class="areabx clear">
+   
+        <div id="divSearch">
+            @*<div class="areabx_header">@ViewBag.Title</div>*@
+            <ul class="formod">
+                <li><span>结算月份：</span>@Html.TextBox("PayOffMonth", "", new { @class = "trade-time wid153", @onClick = "WdatePicker({dateFmt:'yyyy-MM'})" })</li>
+            </ul>
+            <div class="botbtbx pdb0">
+                <input type="button" value="查询" id="btnSearch" onclick="reloadList();" class="btn btn-primary" />
+                <input type="button" value="导出" id="btnExport" onclick="exportExcel();" class="btn btn-primary" />
+                <a onclick="showLoadWin();">下载已经生成的对账单</a>
+            </div>
+        </div>
+    <div class="tob_box mgt15">
+        <table id="table_local" class="display" cellspacing="0" cellpadding="0" border="0" style="width: 100%">
+            <thead>
+                <tr>
+                    <th rowspan="2">
+                        <div style="text-align: left; margin-left: 8px;">
+                            <input type='checkbox' id='chkAllColl' onclick='selectAll()' />&nbsp&nbsp 序号
+                        </div>
+                    </th>
+                    @*     <th rowspan="2">对账日期</th>*@
+                    <th rowspan="2">结算月份</th>
+                    <th rowspan="2">提单总数</th>
+                    <th rowspan="2">包裹总数</th>
+                    <th colspan="2"><span>成本</span>@*<span class="divIncome1"><img id="imgIncome" src="/images/icon_9.png" alt="收起/展开" /></span>*@</th>
+                    <th colspan="2"><span>收入</span>@*<span class="divIncome1"><img id="imgCost" src="/images/icon_9.png" alt="收起/展开" /></span>*@</th>
+                    <th colspan="2"><span>毛利</span>@*<span class="divIncome1"><img id="imgMargin" src="/images/icon_9.png" alt="收起/展开" /></span>*@</th>
+                    <th rowspan="2">备注</th>
+                    <th rowspan="2">状态</th>
+                    <th rowspan="2">操作</th>
+                </tr>
+                <tr>
+                    <th>预计总成本</th>
+                    <th>真实总成本</th>
+                    <th>预计总收入</th>
+                    <th>真实总收入</th>
+                    <th>总毛利</th>
+                    <th>毛利率</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
+</div>

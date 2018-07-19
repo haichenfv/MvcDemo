@@ -1,0 +1,375 @@
+﻿@model Core.Receivable.MonthPayOff
+@{
+    ViewBag.Title = "月结明细";
+}
+<style type="text/css">
+    html, body {
+        overflow-y:auto;
+    }
+</style>
+<link href="~/libs/DataTables-1.10.6/media/css/jquery.dataTablesNew.css" rel="stylesheet" />
+<script src="~/libs/lhgdialog/lhgdialog.min.js?self=true"></script>
+<script src="~/libs/DataTables-1.10.6/media/js/jquery.dataTables.min.js"></script>
+<script src="~/Scripts/DataTablesExt.js"></script>
+<script src="~/libs/My97DatePicker/WdatePicker.js"></script>
+<script type="text/javascript">
+    $(function () {
+        var h = table_h - $("#divMonth").height() - $("#formLoadBillDetail").height() - 10;
+        var table = $("#table_local").dataTable({
+            bProcessing: true,
+            "scrollY": h<200?400:h,
+            "scrollX": $(document).width(),
+            "scrollCollapse": "true",
+            "dom": 'tr<"bottom"lip><"clear">',
+            "bServerSide": true,                    //指定从服务器端获取数据  
+            sServerMethod: "POST",
+            showRowNumber:true,
+            sAjaxSource: "@Url.Action("LoadBillList", "Statistical", new { MonthPayOffID=Model.ID})",
+            "fnServerParams": function (aoData) {  //查询条件
+                aoData.push(
+                    { "name": "CusName", "value": $("#CusName").val() },
+                    { "name": "LoadBillNum", "value": $("#LoadBillNum").val() },
+                    { "name": "CompletionSTime", "value": $("#CompletionSTime").val() },
+                    { "name": "CompletionETime", "value": $("#CompletionETime").val() },
+                    { "name": "ReconcileSTime", "value": $("#ReconcileSTime").val() },
+                    { "name": "ReconcileETime", "value": $("#ReconcileETime").val() }
+                     );
+            },
+            //跟数组下标一样，第一列从0开始，这里表格初始化时，第四列默认降序
+            "order": [[ 2, "asc" ]],
+            columns: [
+                {"data": "ID", orderable: false, width: "60"},
+                { "data": "CusName" }, //客户名称
+                { "data": "LoadBillNum" },//提单号
+                { "data": "FeeWeight", orderable: false }, //提单包裹重量
+                { "data": "ExpressCount", orderable: false }, //提单包裹数量
+                { "data": "CompletionTime" }, //清关完成时间
+                { "data": "ReconcileDate" },//对账时间
+                { "data": "GroundHandlingFee", visible: false },//邮政地勤费
+                { "data": "CostStoreFee", visible: false },//邮政仓租
+                {
+                    "data": "CostExpressFee", orderable: false, visible: false, "render": function (data, type, row, meta) {
+                        var css = "";
+                        if (row.IsReal==0) {
+                            css = " class='preColor'";
+                        }
+                        var re = "<div" + css + ">" + data + "</div>";
+                        return re;
+                    }
+                },//邮政邮资
+                {
+                    "data": "CostOperateFee", orderable: false, visible: false, "render": function (data, type, row, meta) {
+                        var css = "";
+                        if (row.IsReal == 0) {
+                            css = " class='preColor'";
+                        }
+                        var re = "<div" + css + ">" + data + "</div>";
+                        return re;
+                    }
+                },//邮件处理费
+                { "data": "CostOtherFee", visible: false },//邮政其他费用
+                { "data": "CostTotalFee" },//邮政总成本
+                { "data": "CostStatus" },//邮政结算状态
+                { "data": "InComeLoadFee", visible: false },//客户提货费
+                { "data": "InComeStoreFee", visible: false },//客户仓租
+                { "data": "InComeExpressFee", visible: false },//客户运费
+                { "data": "InComeOperateFee", visible: false },//客户操作费
+                { "data": "InComeOtherFee", visible: false },//其他费用
+                { "data": "InComeTotalFee" },//总收入
+                { "data": "InComeStatus",orderable: false ,width:"90"},//结算状态
+                {
+                    "data": "TotalGrossProfit", orderable: false, "render": function (data, type, row, meta) {
+                        var css = "";
+                        if (data < 0) {
+                            css=" class='numberColor'";
+                        }
+                        var re = "<div"+css+">"+data+"</div>";
+                        return re;
+                    }
+                },//总毛利
+                {
+                    "data": "GrossProfitRate", orderable: false, "render": function (data, type, row, meta) {
+                        var css = "";
+                        if (data < 0) {
+                            css = " class='numberColor'";
+                        }
+                        var re = "<div" + css + ">" + data + "%</div>";
+                        return re;
+                    }
+                },//毛利率
+                {
+                    "data": "LoadBillNum", orderable: false, width: "160", "render": function (data, type, row, meta) {
+                        var re = "<div style='text-align:center'>";
+                        var reconcileDate = row.ReconcileDate == '' ? row.CompletionTime : row.ReconcileDate;
+                        re += "<a style='visibility:visible' name='addMonthPayOff' onclick ='AddMonthlyBalance(event,\"" + data + "\",\"" + reconcileDate + "\","
+                            + row.ExpressCount + "," + row.CostTotalFee + "," + row.InComeTotalFee + "," + row.TotalGrossProfit + ")'>修改</a>";
+                        return re + "</div>";
+                    }
+                }
+            ],
+            paging: true,//分页
+            ordering: false,//是否启用排序
+            searching: true,//搜索
+            language: {
+                "sProcessing": "处理中...",
+                lengthMenu: lengthMenuStr,//左上角的分页大小显示。
+                search: '<span class="label label-success">搜索：</span>',//右上角的搜索文本，可以写html标签
+
+                paginate: {//分页的样式内容。
+                    previous: "上一页",
+                    next: "下一页",
+                    first: "",
+                    last: ""
+                },
+
+                zeroRecords: "暂无记录",//table tbody内容为空时，tbody的内容。
+                //下面三者构成了总体的左下角的内容。
+                info: infoStr,//左下角的信息显示，大写的词为关键字。初始_MAX_ 条 
+                infoEmpty: "0条记录",//筛选为空时左下角的显示。
+                infoFiltered: ""//筛选之后的左下角筛选提示，
+            },
+            pagingType: "full_numbers"//分页样式的类型
+        });
+        //new $.fn.dataTable.FixedColumns(table);
+        //设置选中行样式
+        $('#table_local tbody').on('click', 'tr', function () {
+            if ($(this).hasClass('selected')) {
+                $(this).removeClass('selected');
+            }
+            else {
+                table.$('tr.selected').removeClass('selected');
+                $(this).addClass('selected');
+            }
+        });
+        //展开折叠列
+        $("#imgIncome").click(function () {
+            var url = $("#imgIncome").attr("src");
+            var arr = new Array(7, 8, 9, 10, 11);
+            if (url == "/images/icon_9.png") {
+                controlColumnShow(table, arr, true);
+                $("#imgIncome").attr("src", "/images/icon_10.png");
+            }
+            else {
+                controlColumnShow(table, arr, false);
+                $("#imgIncome").attr("src", "/images/icon_9.png");
+            }
+        });
+        //收入展开折叠
+        $("#imgCost").click(function () {
+            var url = $("#imgCost").attr("src");
+            var arr = new Array(14,15,16, 17, 18);
+            if (url == "/images/icon_9.png") {
+                controlColumnShow(table, arr, true);
+                $("#imgCost").attr("src", "/images/icon_10.png");
+            }
+            else {
+                controlColumnShow(table, arr, false);
+                $("#imgCost").attr("src", "/images/icon_9.png");
+            }
+        });
+    });
+    function reloadList() {
+        var tables = $('#table_local').dataTable().api();//获取DataTables的Api，详见 http://www.datatables.net/reference/api/
+        tables.ajax.reload(function () {
+            //var json = tables.context[0].json;
+            //getTotal(json);
+        }, false);
+    }
+    //统计
+    function getTotal(json) {
+        if (json) {
+            if (json.TotalWeight) {
+                $("#spnTotalWeight").html(json.TotalWeight);
+                $("#spnTotalWayBillFee").html(json.TotalWayBillFee);
+                $("#spnTotalProcessingFee").html(json.TotalProcessingFee);
+                $("#spnTotalExpressFee").html(json.TotalExpressFee);
+                $("#spnTotalOperateFee").html(json.TotalOperateFee);
+                $("#spnSumWayBillProfit").html(json.SumWayBillProfit);
+                $("#spnSumTotalProfit").html(json.SumTotalProfit);
+            }
+        }
+    }
+    //控制指定定列的隐藏和显示（table，列索引数组，隐藏or显示:true,false)
+    function controlColumnShow(table, arr,tag) {
+        for (var i = 0; i < arr.length; i++) {
+            table.fnSetColumnVis(arr[i],tag);
+        }
+    }
+    function Goto() {
+        self.parent.closeCurrentTag(); //关闭当前页签
+    }
+    var addDG;
+    var payOffMonth;
+    //添加到月结表 提单号，结算月份、包裹数、总成本、总收入、总毛利
+    function AddMonthlyBalance(ev, id, date, ExpressCount, CostTotalFee, InComeTotalFee, GrossProfitRate) {
+        if (date == '') {
+            $.dialog.alert("提货单“" + id + "”数据未导入成本数据,且未清关");
+            return false;
+        }
+        var d = { "data": { "LoadBillNum": id, "ReconcileTime": date, "PreTotalCostFee": CostTotalFee, "TotalCostFee": CostTotalFee, "PreInComeFee": InComeTotalFee, "InComeFee": InComeTotalFee, "TotalMargin": GrossProfitRate } };
+        selectData = JSON.stringify(d);
+        addDG = $.dialog({
+            id: 'EditMonthPayList',
+            title: '更新月结表',
+            width: 200,
+            height: 150,
+            content: "url:@Url.Action("AddMonthPayOff","Reconciliation")?payOffDate=" + date,
+            close: true,
+            btnBar: false,
+            max: false,
+            min: false,
+            lock: true
+        });
+    }
+    function reloadList() {
+        var tables = $('#table_local').dataTable().api();//获取DataTables的Api，详见 http://www.datatables.net/reference/api/
+        tables.ajax.reload(function () {
+            var json = tables.context[0].json;
+            getTotal(json);
+        }, false);
+    }
+    //传递选择的行数据
+    function postSelectData(payOffMonth, isNeglect) {
+        selectData = selectData.substring(0, selectData.length - 1) + ',"payOffMonth":"' + payOffMonth + '","isNeglect":' + isNeglect + "}";
+        $.ajax({
+            url: '@Url.Action("EditMonthPayOff")',
+            type: 'POST',
+            dataType: 'json',
+            data: selectData,
+            contentType: 'application/json; charset=utf-8',
+            success: function (data) {
+                if (isNeglect == false) {
+                    addDG.close();
+                }
+                if (!data.IsSuccess && data.IsPoint) {
+                    $.dialog.confirm("<div style='max-height:200px;overflow:auto;'>" + data.Message + "</div>", function () { postSelectData(payOffMonth, true); });
+                }
+                else {
+                    $.dialog.alert("<div style='max-height:200px;overflow:auto;'>" + data.Message + "</div>", function () { if (data.IsSuccess) { reloadList(); } });
+                }
+            }
+        });
+    }
+</script>
+<div class="areabx clear" id="divMonth">
+    <div class="areabx_header">月计表-提单明细<span class="spanMsg"> <input type="button" value=" 返 回 " class="popbtn1 mg" onclick="Goto()" /></span></div>
+      <div class="tob_box mgt15">
+    <div class="tob_box">
+        <table class="display dataTable no-footer" cellspacing="0" cellpadding="0" border="0" style="width: 100%;">
+            <thead>
+                <tr>
+                    <th>结算月份</th>
+                    <th>提单总数</th>
+                    <th>包裹总数</th>
+                    <th></th>
+                    <th>成本</th>
+                    <th>收入</th>
+                    <th>毛利</th>
+                    <th>毛利率</th>
+                    <th>备注</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="odd">
+                    <td rowspan="2">@Model.PayOffMonth.ToString("yyyy-MM-dd")</td>
+                    <td rowspan="2">@Model.LoadBillCounts</td>
+                    <td rowspan="2">@Model.OrderCounts</td>
+                    <td>预估</td>
+                    <td>@Model.PreTotalCostFee</td>
+                    <td>@Model.PreInComeFee</td>
+                    <td>@(Model.PreInComeFee-Model.PreTotalCostFee)</td>
+                    <td>@Math.Round(Model.PreInComeFee==0?0:(1-Model.PreTotalCostFee/Model.PreInComeFee)*100, 2)%</td>
+                    <td rowspan="2">@Model.Remark</td>
+                </tr>
+                <tr class="odd">
+                    <td>真实</td>
+                    <td>@Model.TotalCostFee</td>
+                    <td>@Model.InComeFee</td>
+                    <td>@(Model.InComeFee-Model.TotalCostFee)</td>
+                    <td>@Math.Round(Model.InComeFee==0?0:(1-Model.TotalCostFee/Model.InComeFee)*100, 2)%</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+   </div>
+</div>
+<div class="areabx clear">
+    @using (Html.BeginForm("List", null, FormMethod.Get, new { @clase = "form-inline", @role = "form",@id="formLoadBillDetail" }))
+    {
+        <div class="areabx_header">提单明细</div>
+            <ul class="formod">
+                <li><span style="width:100px;">客户名：</span>@Html.TextBox("CusName", "", new { @class = "trade-time wid153" })</li>
+                <li><span>提单号：</span>@Html.TextBox("LoadBillNum", "", new { @class = "trade-time" })</li>
+            </ul>
+            <ul class="formod">
+                <li><span style="width:100px;">清关完成时间：</span>@Html.TextBox("CompletionSTime", "", new { @class = "trade-time wid153", @onClick = "WdatePicker({maxDate:'#F{$dp.$D(\\'CompletionETime\\')}'})" })</li>
+                <li><span class="css_Span">—</span>  @Html.TextBox("CompletionETime", "", new { @class = "trade-time wid153", @onClick = "WdatePicker({minDate:'#F{$dp.$D(\\'CompletionSTime\\')}'})" })</li>
+                <li><span>对账日期：</span>@Html.TextBox("ReconcileSTime", "", new { @class = "trade-time wid153", @onClick = "WdatePicker({maxDate:'#F{$dp.$D(\\'ReconcileETime\\')}'})" })</li>
+                <li><span class="css_Span">—</span>  @Html.TextBox("ReconcileETime", "", new { @class = "trade-time wid153", @onClick = "WdatePicker({minDate:'#F{$dp.$D(\\'ReconcileSTime\\')}'})" })</li>
+            </ul>
+        <div class="botbtbx pdb0">
+            <input type="button" value="查询" id="btnSearch" onclick="reloadList();" class="btn btn-primary" />
+        </div>
+    }
+    <div class="tob_box mgt15">
+        <table id="table_local" class="display" cellspacing="0" cellpadding="0" border="0" style="width: 100%;">
+            <thead>
+                <tr>
+                    <th rowspan="2">序号</th>
+                    <th rowspan="2">客户简称</th>
+                    <th rowspan="2">提单号</th>
+                    <th rowspan="2">提单包裹重量(KG)</th>
+                    <th rowspan="2">提单包裹数量</th>
+                    <th rowspan="2">清关完成时间</th>
+                    <th rowspan="2">对账日期</th>
+                    <th colspan="7"><span>成本</span><span class="divIncome1"><img id="imgIncome" src="/images/icon_9.png"  alt="收起/展开" title="收起/展开"/></span></th>
+                    <th colspan="7"><span>收入</span><span class="divIncome1"><img id="imgCost" src="/images/icon_9.png" alt="收起/展开" title="收起/展开"/></span></th>
+                    <th colspan="2">毛利</th>
+                    <th rowspan="2">操作</th>
+                </tr>
+                <tr>
+                    <th>邮政地勤费</th>
+                    <th>邮政仓租</th>
+                    <th>邮政邮资</th>
+                    <th>邮件处理费</th>
+                    <th>邮政其他费用</th>
+                    <th>邮政总成本</th>
+                    <th>邮政结算状态</th>
+                    <th>客户提货费</th>
+                    <th>客户仓租</th>
+                    <th>客户运费</th>
+                    <th>客户操作费</th>
+                    <th>其他费用</th>
+                    <th>总收入</th>
+                    <th>结算状态</th>
+                    <th>总毛利</th>
+                    <th>毛利率</th>
+                </tr>
+            </thead>
+            @*<tfoot>
+                <tr>
+                    <td>总计</td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td><span id="spnTotalWeight"></span></td>
+                    <td><span id="spnTotalWayBillFee"></span></td>
+                    <td><span id="spnTotalProcessingFee"></span></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td><span id="spnTotalExpressFee"></span></td>
+                    <td><span id="spnTotalOperateFee"></span></td>
+                    <td></td>
+                    <td></td>
+                    <td></td>
+                    <td><span id="spnSumWayBillProfit"></span></td>
+                    <td><span id="spnSumTotalProfit"></span></td>
+                    <td></td>
+                </tr>
+            </tfoot>*@
+        </table>
+    </div>
+</div>
